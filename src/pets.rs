@@ -1,0 +1,47 @@
+pub struct Stats {
+    HP: u8,
+    Attack: u8,
+}
+pub struct Pet {
+    species: Species,
+    stats: Stats,
+    xp: u8,
+}
+
+pub enum Species {
+    Duck,
+    Beaver,
+    Otter,
+    Pig,
+    Ant,
+    Mosquito,
+    Mouse,
+    Fish,
+    Cricket,
+    Horse,
+    Snail,
+    Crab,
+    Swan,
+    Rat,
+    Hedgehog,
+    Peacock,
+    Flamingo,
+    Worm,
+    Kangaroo,
+    Spider,
+    Dodo,
+    Badger,
+    Dolphin,
+    Zebra,
+    Elephant,
+    Camel,
+    Rabbit,
+    Ox,
+    Dog,
+    Sheep,
+    Skunk,
+    Hippo,
+    Bison,
+    Blowfish,
+}
+
