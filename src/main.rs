@@ -1,20 +1,18 @@
-mod abilities;
 mod pets;
+mod food;
+mod states;
 
 use pets::Pet;
+use states::{State, simulate_battle};
 
 enum Food {
     Apple,
 }
 
-enum ShopSlot {
-    None,
-    Food {
-        Food: Food,
-        Cost: u8,
-    },
-}
+
 
 fn main() {
+    let game_result = simulate_battle(State);
+
     println!("Hello, world!");
 }
