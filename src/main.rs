@@ -2,6 +2,7 @@ mod pets;
 mod food;
 mod states;
 mod actions;
+mod battles;
 
 use pets::Pet;
 // use states::{simulate_battle};

@@ -3,7 +3,10 @@ use std::default;
 use crate::pets::{Pet, Stats};
 use crate::food::Food;
 
+pub type Id = u32;
+
 // Represents a side of a battle
+#[derive(Clone, Copy)]
 pub enum Side {
     A,
     B,
@@ -49,13 +52,32 @@ pub struct PlayerState {
     shop: [ShopSlot; 9],
     shop_scaling: Stats,    
     activity: Activity,
-    next_id: u32,
+    next_id: Id,
+}
+
+impl PlayerState {
+    // Get one side of the battle
+    // Will return None if there is no relevant team, ie. trying to get the opposition while in the shop
+    fn get_team_from_side<'a>(&'a mut self, side: Side) -> Option<&'a mut Team> {
+        match (side, &mut self.activity) {
+            (Side::A, Activity::Shop) => {
+                Some(&mut self.team)
+            },
+            (Side::A, Activity::Battle{team, opposition}) => {
+                Some(team)
+            },
+            (Side::B, Activity::Shop) => None,
+            (Side::B, Activity::Battle {team, opposition }) => {
+                Some(opposition)
+            },
+        }
+    }
 }
 
 impl PlayerState {
     // Generate a unique id for a pet to be used for individual identification
     // As this project is currently single-threaded, there is no need for atomics
-    fn gen_id(&mut self) -> u32 {
+    fn gen_id(&mut self) -> Id {
         let id = self.next_id;
         self.next_id = id + 1;
         id
@@ -73,14 +95,6 @@ pub enum Activity {
     },
 }
 
-// A wrapper around gamestate to be used in battle
-// provides generic ways to interact with the game's state
-pub struct BattlePerspective<'a> {
-    side: Side,
-    // If provided, represents which position in the lineup the pet doing the action is in
-    pet_position: Option<usize>,
-    game_state: &'a mut PlayerState,
-}
 
 
 pub enum GameResult {
@@ -88,7 +102,3 @@ pub enum GameResult {
     Loss,
 }
 
-pub fn simulate_battle(state: BattlePerspective) -> GameResult {
-
-    GameResult::Loss
-}
