@@ -1,7 +1,6 @@
-use std::default;
-
-use crate::pets::{Pet, Stats};
+use crate::pets::Pet;
 use crate::food::Food;
+use crate::stats::Stats;
 
 pub type Id = u32;
 
