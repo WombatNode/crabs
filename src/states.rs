@@ -5,6 +5,9 @@ use crate::food::Food;
 
 pub type Id = u32;
 
+// A team of pets
+pub type Team = [Option<Pet>; 5];
+
 // Represents a side of a battle
 #[derive(Clone, Copy)]
 pub enum Side {
@@ -22,12 +25,6 @@ impl Side {
     }
 }
 
-
-// A team of pets
-#[derive(Default)]
-pub struct Team {
-    pets: [Option<Pet>; 5],
-}
 
 // Represents a slot in the shop. Can either be empty, or contain a food or pet
 #[derive(Default)]
@@ -58,7 +55,7 @@ pub struct PlayerState {
 impl PlayerState {
     // Get one side of the battle
     // Will return None if there is no relevant team, ie. trying to get the opposition while in the shop
-    fn get_team_from_side<'a>(&'a mut self, side: Side) -> Option<&'a mut Team> {
+    pub fn get_team_from_side<'a>(&'a mut self, side: Side) -> Option<&'a mut Team> {
         match (side, &mut self.activity) {
             (Side::A, Activity::Shop) => {
                 Some(&mut self.team)

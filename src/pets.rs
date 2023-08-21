@@ -1,15 +1,38 @@
-#[derive(Default)]
+use std::ops::{Add, AddAssign};
+
+use crate::states::Id;
+
+#[derive(Default, Clone, Copy)]
 pub struct Stats {
-    HP: u8,
-    Attack: u8,
+    pub hp: u8,
+    pub attack: u8,
 }
+
+impl Add for Stats {
+    type Output = Stats;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Stats {
+            hp: self.hp + rhs.hp,
+            attack: self.attack + rhs.attack,
+        }
+    }
+}
+
+impl AddAssign for Stats {
+    fn add_assign(&mut self, rhs: Self) {
+        self.hp += rhs.hp;
+        self.attack += rhs.attack;
+    }
+}
+
 pub struct Pet {
-    species: Species,
-    base_stats: Stats,
-    temp_stats: Stats,
-    stats: Stats,
-    xp: u8,
-    id: u32,
+    pub species: Species,
+    pub base_stats: Stats,
+    pub temp_stats: Stats,
+    pub stats: Stats,
+    pub xp: u8,
+    pub id: Id,
 }
 
 pub enum Species {
