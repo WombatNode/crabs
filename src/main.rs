@@ -4,12 +4,7 @@ mod states;
 mod actions;
 
 use pets::Pet;
-use states::{State, simulate_battle};
-
-enum Food {
-    Apple,
-}
-
+// use states::{simulate_battle};
 
 
 fn main() {

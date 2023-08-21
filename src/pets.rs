@@ -1,11 +1,15 @@
+#[derive(Default)]
 pub struct Stats {
     HP: u8,
     Attack: u8,
 }
 pub struct Pet {
     species: Species,
+    base_stats: Stats,
+    temp_stats: Stats,
     stats: Stats,
     xp: u8,
+    id: u32,
 }
 
 pub enum Species {

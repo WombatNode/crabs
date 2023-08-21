@@ -2,6 +2,7 @@ use std::cell::Cell;
 
 use rand::{self, Rng};
 
+type ActionFn = dyn FnOnce();
 
 // Get the index of a random action of the highest priority when given an enumerated iterator
 fn get_largest_random_action<'a, T>(mut action_iter: impl Iterator<Item = (usize, &'a T)>) -> usize
@@ -90,19 +91,19 @@ impl <T: Action> ActionQueue<T>{
 pub struct FinalAction {
     priority: i32,
     delayed: bool,
-    action: Box<dyn FnOnce()>
+    action: Box<ActionFn>
 }
 // Action for living pets - priority automatically changes on attack change
 pub struct ActiveAction<'a> {
     priority: &'a Cell<i32>,
     delayed: bool,
-    action: Box<dyn FnOnce()>
+    action: Box<ActionFn>
 }
 
 pub trait Action {
     fn get_priority(&self) -> i32;
     fn is_delayed(&self) -> bool;
-    fn take_action(self) -> Box<dyn FnOnce()>;
+    fn take_action(self) -> Box<ActionFn>;
 }
 
 impl Action for FinalAction {
@@ -114,7 +115,7 @@ impl Action for FinalAction {
         self.delayed
     }
 
-    fn take_action(self) -> Box<dyn FnOnce()> {
+    fn take_action(self) -> Box<ActionFn> {
         self.action
     }
 }
@@ -128,7 +129,7 @@ impl <'a> Action for ActiveAction<'a> {
         self.delayed
     }
 
-    fn take_action(self) -> Box<dyn FnOnce()> {
+    fn take_action(self) -> Box<ActionFn> {
         self.action
     }
 }
