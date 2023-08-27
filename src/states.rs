@@ -1,3 +1,4 @@
+use crate::battles::get_pet_from_team;
 use crate::pets::Pet;
 use crate::food::Food;
 use crate::stats::Stats;
@@ -10,8 +11,8 @@ pub type Team = [Option<Pet>; 5];
 // Represents a side of a battle
 #[derive(Clone, Copy)]
 pub enum Side {
-    A,
-    B,
+    A = 0,
+    B = 1,
 }
 
 impl Side {
@@ -52,19 +53,32 @@ pub struct PlayerState {
 }
 
 impl PlayerState {
-    // Get one side of the battle
-    // Will return None if there is no relevant team, ie. trying to get the opposition while in the shop
-    pub fn get_team_from_side<'a>(&'a mut self, side: Side) -> Option<&'a mut Team> {
-        match (side, &mut self.activity) {
-            (Side::A, Activity::Shop) => {
-                Some(&mut self.team)
+    // // Get one side of the battle
+    // // Will return None if there is no relevant team, ie. trying to get the opposition while in the shop
+    // pub fn get_team_from_side<'a>(&'a mut self, side: Side) -> Option<&'a mut Team> {
+    //     match (side, &mut self.activity) {
+    //         (Side::A, Activity::Shop) => {
+    //             Some(&mut self.team)
+    //         },
+    //         (Side::A, Activity::Battle{team, opposition}) => {
+    //             Some(team)
+    //         },
+    //         (Side::B, Activity::Shop) => None,
+    //         (Side::B, Activity::Battle {team, opposition }) => {
+    //             Some(opposition)
+    //         },
+    //     }
+    // }    
+    
+    // Get noth sides of battle in tuple
+    // Teams may be None
+    pub fn get_teams<'a>(&'a mut self) -> (Option<&'a mut Team>, Option<&'a mut Team>) {
+        match &mut self.activity {
+            Activity::Shop => {
+                (Some(&mut self.team), None)
             },
-            (Side::A, Activity::Battle{team, opposition}) => {
-                Some(team)
-            },
-            (Side::B, Activity::Shop) => None,
-            (Side::B, Activity::Battle {team, opposition }) => {
-                Some(opposition)
+            Activity::Battle{team, opposition} => {
+                (Some(team), Some(opposition))
             },
         }
     }
@@ -77,6 +91,13 @@ impl PlayerState {
         let id = self.next_id;
         self.next_id = id + 1;
         id
+    }
+
+    pub fn get_pet(&mut self, id: Id) -> Option<&mut Pet> {
+        // Check our team first
+        let (team, opposition) = self.get_teams();
+        get_pet_from_team(team, id)
+            .or(get_pet_from_team(opposition, id))
     }
 }
 

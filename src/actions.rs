@@ -52,6 +52,13 @@ pub struct ActionQueue<T: Action> {
 
 
 impl <T: Action> ActionQueue<T>{
+    pub fn new() -> Self {
+        ActionQueue { 
+            delay: false, 
+            buffered_actions: Vec::new() 
+        }
+    }
+
     // Return the next queues action
     pub fn get_next(&mut self) -> Option<T> {
         // Return None if there are no buffered actions
@@ -133,3 +140,39 @@ impl <'a> Action for ActiveAction<'a> {
         self.action
     }
 }
+
+pub struct ActionResolver<'a> {
+    active_actions: ActionQueue<ActiveAction<'a>>, 
+    faints: ActionQueue<FinalAction>, 
+    final_actions: ActionQueue<FinalAction>,
+}
+
+impl <'a> ActionResolver<'a> {
+    pub fn new() -> Self {
+        Self {
+            active_actions: ActionQueue::new(), 
+            faints: ActionQueue::new(), 
+            final_actions: ActionQueue::new(), 
+        }
+    }
+}
+
+// pub struct ActionHandler<'a> {
+//     active_actions: ActionQueue<ActiveAction<'a>>, 
+//     faints: ActionQueue<FinalAction>, 
+//     final_actions: ActionQueue<FinalAction>, 
+// }
+
+// impl <'a> ActionHandler<'a> {
+//     pub fn new() -> Self {
+//         ActionHandler {  
+//             active_actions: ActionQueue::new(), 
+//             faints: ActionQueue::new(), 
+//             final_actions: ActionQueue::new(), 
+//         }
+//     }
+
+//     pub fn next_action(&mut self) -> Action {
+
+//     }
+// }
