@@ -5,6 +5,7 @@ mod actions;
 mod battles;
 mod stats;
 mod triggers;
+mod utils;
 
 // use pets::Pet;
 // use states::{simulate_battle};

@@ -17,7 +17,7 @@ pub enum Side {
 
 impl Side {
     // Get opposing side
-    fn opposition(&self) -> Side {
+    pub fn opposition(&self) -> Side {
         match self {
             Side::A => Side::B,
             Side::B => Side::A,
@@ -72,13 +72,14 @@ impl PlayerState {
     
     // Get noth sides of battle in tuple
     // Teams may be None
-    pub fn get_teams<'a>(&'a mut self) -> (Option<&'a mut Team>, Option<&'a mut Team>) {
+    // Returns a tuple where element 0 is the 'players' side, and 1 is the opposition. This doesn't account for in battle stuff, so the perspective functions should be used in those cases
+    pub fn get_teams<'a>(&'a mut self) -> [Option<&'a mut Team>; 2] {
         match &mut self.activity {
             Activity::Shop => {
-                (Some(&mut self.team), None)
+                [Some(&mut self.team), None]
             },
             Activity::Battle{team, opposition} => {
-                (Some(team), Some(opposition))
+                [Some(team), Some(opposition)]
             },
         }
     }
@@ -95,7 +96,7 @@ impl PlayerState {
 
     pub fn get_pet(&mut self, id: Id) -> Option<&mut Pet> {
         // Check our team first
-        let (team, opposition) = self.get_teams();
+        let [team, opposition] = self.get_teams();
         get_pet_from_team(team, id)
             .or(get_pet_from_team(opposition, id))
     }
