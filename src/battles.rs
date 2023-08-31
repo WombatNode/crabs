@@ -2,7 +2,7 @@ use std::cmp::{Ordering, min};
 
 use rand::seq::IteratorRandom;
 
-use crate::{states::{PlayerState, GameResult, Side, Id, Team}, pets::Pet, actions::{ActionQueue, Action, ActionResolver}, triggers::Trigger};
+use crate::{states::{PlayerState, GameResult, Side, Id, Team}, pets::{Pet, PetDetails, trigger_action}, actions::{ActionQueue, Action, ActionResolver}, triggers::Trigger};
 
 
 pub enum DamageType {
@@ -42,8 +42,8 @@ pub fn get_pet_from_team(team: Option<&mut Team>, id: Id) -> Option<(&mut Pet, u
         })
 } 
 
-fn hurt(damage: u8, source: Id, damage_type: DamageType, 
-        target: &mut Pet, state: &mut PlayerState) 
+pub fn hurt(damage: u8, source: Id, damage_type: DamageType, 
+        target: PetDetails, action_resolver: &mut ActionResolver) 
 {
     // Deal with food mitigation
 
@@ -53,14 +53,12 @@ fn hurt(damage: u8, source: Id, damage_type: DamageType,
     }
 
     // Decrease hp
-    let new_hp = target.stats.hp.saturating_sub(damage);
-    target.stats.hp = new_hp;
+    let new_hp = target.pet.stats.hp.saturating_sub(damage);
+    target.pet.stats.hp = new_hp;
 
     // Apply hurt trigger to pet
     let trigger = Trigger::Hurt { source, damage_type };
-
-
-
+    trigger_action(action_resolver, target, trigger);
 
     // Check if the pet has been killed
     if new_hp == 0 {

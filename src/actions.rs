@@ -2,7 +2,7 @@ use rand::{self, Rng};
 
 use crate::states::{PlayerState, Id};
 
-type ActionFn = dyn FnOnce();
+type ActionFn = dyn FnOnce(&mut ActionResolver, &mut PlayerState);
 
 // Get the index of a random action of the highest priority when given an enumerated iterator
 fn get_largest_random_action<'a>(mut action_iter: impl Iterator<Item = (usize, &'a Action)>) -> usize
@@ -112,20 +112,18 @@ pub struct Action {
     pub action: Box<ActionFn>
 }
 
-pub struct ActionResolver<'a> {
+pub struct ActionResolver {
     pub active_actions: ActionQueue, 
     pub faints: ActionQueue, 
     pub post_faint: ActionQueue,
-    pub state: &'a mut PlayerState,
 }
 
-impl <'a> ActionResolver<'a> {
-    pub fn new(state: &'a mut PlayerState) -> Self {
+impl ActionResolver {
+    pub fn new() -> Self {
         Self {
             active_actions: ActionQueue::new(), 
             faints: ActionQueue::new(), 
             post_faint: ActionQueue::new(), 
-            state,
         }
     }
 

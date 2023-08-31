@@ -1,21 +1,21 @@
 use std::ops::Index;
 
-use crate::{states::{Id, Team, Side, PlayerState}, stats::Stats, triggers::Trigger, actions::{Action, ActionResolver}};
-
+use crate::{states::{Id, Team, Side, PlayerState}, stats::Stats, triggers::Trigger, actions::{Action, ActionResolver}, utils::is_living, battles::{hurt, DamageType}};
 
 pub struct Pet {
     pub species: Species,
     pub base_stats: Stats,
     pub temp_stats: Stats,
     pub stats: Stats,
+    pub level: u8,
     pub xp: u8,
     pub id: Id,
 }
 
 pub struct PetDetails<'a> {
-    pet: &'a mut Pet,
-    side: Side,
-    position: usize,
+    pub pet: &'a mut Pet,
+    pub side: Side,
+    pub position: usize,
 }
 
 pub enum Species {
@@ -61,9 +61,10 @@ impl Pet {
     }
 }
 
-pub fn trigger_action(mut action_resolver: ActionResolver, pet_details: PetDetails, trigger: Trigger) {
+pub fn trigger_action(mut action_resolver: &mut ActionResolver, pet_details: PetDetails, trigger: Trigger) {
 
     let pet =  pet_details.pet;
+    let id = pet.id;
     match trigger {
         Trigger::StartOfBattle => {
             match pet.species {
@@ -71,11 +72,23 @@ pub fn trigger_action(mut action_resolver: ActionResolver, pet_details: PetDetai
                     // Snipe modification
                     let snipe_damage = 1;
                     let attack = pet.stats.attack;
+                    let opposition = pet_details.side.opposition();
                     action_resolver.active_actions.add(Action {
                         priority: attack,
                         delayed: false,
-                        action: Box::new(|| {
-                            return ;
+                        action: Box::new(move |resolver: &mut ActionResolver, state: &mut PlayerState| {
+                            // let state = &mut action_resolver.state;
+                            let level= {
+                                let source = state.get_pet(id).unwrap();
+                                source.pet.level
+                            };
+
+                            // let level = source.pet.level;
+
+                            for target in state.get_n_random(level.into(), opposition, is_living) {
+                                hurt(snipe_damage, id, DamageType::Snipe, target, resolver);
+                            }
+
                         }),
                         source: pet.id,
                     })

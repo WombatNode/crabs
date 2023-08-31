@@ -1,6 +1,6 @@
 use std::cmp::min;
 
-use rand::seq::IteratorRandom;
+use rand::seq::{IteratorRandom, SliceRandom, SliceChooseIter};
 
 use crate::battles::get_pet_from_team;
 use crate::pets::{Pet, PetDetails};
@@ -89,7 +89,7 @@ impl PlayerState {
         id
     }
 
-    pub fn get_pet<'a>(&mut self, id: Id) -> Option<PetDetails<'a>> {
+    pub fn get_pet<'a>(&'a mut self, id: Id) -> Option<PetDetails<'a>> {
         // Check our team first
         let [team, opposition] = self.get_teams();
         if let Some((pet, position)) = get_pet_from_team(team, id) {
@@ -116,6 +116,35 @@ impl PlayerState {
             .unwrap()
             .take()
     }
+
+    pub fn get_n_random<'a, P>(&mut self, n: usize, side: Side, predicate: P) -> 
+            impl Iterator<Item = PetDetails>  
+    where
+        P: FnMut(&PetDetails) -> bool,
+        P: Copy,
+    {
+        let mut options: Vec<PetDetails> = match self.get_team(side) {
+            Some(team) => {
+                team
+                .into_iter()
+                .enumerate()
+                .filter_map(
+                    |(position, pet)| pet.as_mut().map(|pet| PetDetails {
+                        pet,
+                        side,
+                        position,
+                    })
+                    .filter(predicate)
+                )
+                .collect()
+            },
+            None => Vec::new(),
+        };
+
+        options.shuffle(&mut rand::thread_rng());
+
+        return options.into_iter().take(n);
+    } 
 }
 
 // Represents what the player is currently doing,
