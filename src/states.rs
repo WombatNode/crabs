@@ -1,3 +1,7 @@
+use std::cmp::min;
+
+use rand::seq::IteratorRandom;
+
 use crate::battles::get_pet_from_team;
 use crate::pets::{Pet, PetDetails};
 use crate::food::Food;
@@ -105,6 +109,13 @@ impl PlayerState {
             None
         }
     }
+
+    pub fn get_team(&mut self, side: Side) -> Option<&mut Team> {
+        self.get_teams()
+            .get_mut(side as usize)
+            .unwrap()
+            .take()
+    }
 }
 
 // Represents what the player is currently doing,
@@ -118,7 +129,23 @@ pub enum Activity {
     },
 }
 
+pub fn apply_to_n_in_team<F>(team: &mut Team, mut action: F, n: usize, state: &mut PlayerState) 
+where 
+    F: FnMut(&mut Pet, &mut PlayerState)
+{
+    let some_elements: Vec<&mut Pet> = team.into_iter()
+        .filter_map(|x| x.as_mut())
+        .collect();
+    let n = min(some_elements.len(), n);
 
+    let random_pets = some_elements.into_iter()
+        .choose_multiple(&mut rand::thread_rng(), n);
+
+    for pet in random_pets {
+        action(pet, state);
+    }
+
+}
 
 pub enum GameResult {
     Win,

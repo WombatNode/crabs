@@ -62,4 +62,6 @@ fn pick_n_random(n: usize, team: &mut Team) {
     todo!()
 }   
 
-pub fn apply_to_n_random()
+// pub fn apply_to_n_random() {
+
+// }

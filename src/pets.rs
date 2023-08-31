@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use crate::{states::{Id, Team, Side}, stats::Stats, battles::Perspective, triggers::Trigger, actions::ActiveAction};
+use crate::{states::{Id, Team, Side, PlayerState}, stats::Stats, triggers::Trigger, actions::{ActiveAction, ActionResolver}};
 
 
 pub struct Pet {
@@ -61,13 +61,9 @@ impl Pet {
     }
 }
 
-pub fn trigger_action(mut perspective: Perspective, trigger: Trigger) {
+pub fn trigger_action(mut action_resolver: ActionResolver, pet_details: PetDetails, trigger: Trigger) {
 
-    let pet = match perspective.get_current_pet() {
-        Some(pet) => pet,
-        None => return,
-    };
-
+    let pet =  pet_details.pet;
     match trigger {
         Trigger::StartOfBattle => {
             match pet.species {
@@ -75,7 +71,7 @@ pub fn trigger_action(mut perspective: Perspective, trigger: Trigger) {
                     // Snipe modification
                     let snipe_damage = 1;
                     let attack = pet.stats.attack;
-                    perspective.action_resolver.active_actions.add(ActiveAction {
+                    action_resolver.active_actions.add(ActiveAction {
                         priority: attack,
                         delayed: false,
                         action: Box::new(|| {

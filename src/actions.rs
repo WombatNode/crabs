@@ -2,6 +2,8 @@ use std::cell::Cell;
 
 use rand::{self, Rng};
 
+use crate::states::PlayerState;
+
 type ActionFn = dyn FnOnce();
 
 // Get the index of a random action of the highest priority when given an enumerated iterator
@@ -149,14 +151,16 @@ pub struct ActionResolver<'a> {
     pub active_actions: ActionQueue<ActiveAction<'a>>, 
     pub faints: ActionQueue<FinalAction>, 
     pub post_faint: ActionQueue<FinalAction>,
+    pub state: &'a mut PlayerState,
 }
 
 impl <'a> ActionResolver<'a> {
-    pub fn new() -> Self {
+    pub fn new(state: &mut PlayerState) -> Self {
         Self {
             active_actions: ActionQueue::new(), 
             faints: ActionQueue::new(), 
             post_faint: ActionQueue::new(), 
+            state,
         }
     }
 }
