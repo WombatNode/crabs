@@ -2,7 +2,7 @@ use std::cmp::{Ordering, min};
 
 use rand::seq::IteratorRandom;
 
-use crate::{states::{PlayerState, GameResult, Side, Id, Team}, pets::Pet, actions::{ActionQueue, ActiveAction, FinalAction, ActionResolver}};
+use crate::{states::{PlayerState, GameResult, Side, Id, Team}, pets::Pet, actions::{ActionQueue, ActiveAction, FinalAction, ActionResolver}, triggers::Trigger};
 
 
 pub enum DamageType {
@@ -30,12 +30,13 @@ fn get_pet_index_from_id(team: &mut Team, id: Id) -> Option<usize> {
         })
 } 
 
-pub fn get_pet_from_team(team: Option<&mut Team>, id: Id) -> Option<&mut Pet> {
+pub fn get_pet_from_team(team: Option<&mut Team>, id: Id) -> Option<(&mut Pet, usize)> {
     team?.into_iter()
-        .find_map(|pet| {
+        .enumerate()
+        .find_map(|(position, pet)| {
             match pet {
                 Some(pet) if pet.id == id => {
-                    Some(pet)
+                    Some((pet, position))
                 },
                 _ => None,
             }
@@ -60,7 +61,7 @@ impl <'player, 'active> Perspective<'player, 'active> {
     {
         Perspective { 
             state, 
-            side: Side::A,
+            side: Side::Player,
             pet_id: None,
             action_resolver: ActionResolver::new(),
         }
@@ -89,10 +90,11 @@ impl <'player, 'active> Perspective<'player, 'active> {
             .take()
     }
 
-    pub fn get_current_pet(&mut self) -> Option<&mut Pet> {
-        let pet_id = self.pet_id?;
-        self.state.get_pet(pet_id)
-    }
+    // pub fn get_current_pet(&mut self) -> Option<&mut Pet> {
+    //     let pet_id = self.pet_id?;
+    //     let (pet, _position) = self.state.get_pet(pet_id)?;
+    //     Some(pet)
+    // }
 
     // pub fn apply_to_n_foes<F>(&mut self, action: F, cmp: fn(Pet, Pet) -> Ordering) 
     pub fn apply_to_n_foes<F>(&mut self, mut action: F, n: usize) 
@@ -115,16 +117,31 @@ impl <'player, 'active> Perspective<'player, 'active> {
     }
 }
 
-fn hurt(damage: u8, source: &Pet, damage_type: DamageType) -> Box<dyn FnMut(&mut Pet, &mut Perspective)> {
-    Box::new(|pet, perspective| {
-        let hp = pet.stats.hp;
-        pet.stats.hp = hp.saturating_sub(damage);
+fn hurt(damage: u8, source: Id, damage_type: DamageType, 
+        target: &mut Pet, perspective: &mut Perspective) 
+{
+    // Deal with food mitigation
 
-        if (hp == 0) {
-            todo!()
-            // Pet is dead
-        }
-    })
+    // If zero damage is done, the pet shouldn't be hurt
+    if damage == 0 {
+        return;
+    }
+
+    // Decrease hp
+    let new_hp = target.stats.hp.saturating_sub(damage);
+    target.stats.hp = new_hp;
+
+    // Apply hurt trigger to pet
+    let trigger = Trigger::Hurt { source, damage_type };
+
+
+
+
+    // Check if the pet has been killed
+    if new_hp == 0 {
+        todo!()
+        // Pet is dead
+    }
 }
 
 

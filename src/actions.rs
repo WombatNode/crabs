@@ -92,6 +92,10 @@ impl <T: Action> ActionQueue<T>{
 
         Some(action)
     }
+
+    pub fn add(&mut self, action: T) {
+        self.buffered_actions.push(action);
+    }
 }
 
 // Action for potentially dead pets - priority doesn't change
@@ -142,9 +146,9 @@ impl <'a> Action for ActiveAction<'a> {
 }
 
 pub struct ActionResolver<'a> {
-    active_actions: ActionQueue<ActiveAction<'a>>, 
-    faints: ActionQueue<FinalAction>, 
-    final_actions: ActionQueue<FinalAction>,
+    pub active_actions: ActionQueue<ActiveAction<'a>>, 
+    pub faints: ActionQueue<FinalAction>, 
+    pub post_faint: ActionQueue<FinalAction>,
 }
 
 impl <'a> ActionResolver<'a> {
@@ -152,27 +156,7 @@ impl <'a> ActionResolver<'a> {
         Self {
             active_actions: ActionQueue::new(), 
             faints: ActionQueue::new(), 
-            final_actions: ActionQueue::new(), 
+            post_faint: ActionQueue::new(), 
         }
     }
 }
-
-// pub struct ActionHandler<'a> {
-//     active_actions: ActionQueue<ActiveAction<'a>>, 
-//     faints: ActionQueue<FinalAction>, 
-//     final_actions: ActionQueue<FinalAction>, 
-// }
-
-// impl <'a> ActionHandler<'a> {
-//     pub fn new() -> Self {
-//         ActionHandler {  
-//             active_actions: ActionQueue::new(), 
-//             faints: ActionQueue::new(), 
-//             final_actions: ActionQueue::new(), 
-//         }
-//     }
-
-//     pub fn next_action(&mut self) -> Action {
-
-//     }
-// }

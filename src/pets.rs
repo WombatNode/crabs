@@ -1,6 +1,7 @@
 use std::ops::Index;
 
-use crate::{states::Id, stats::Stats, battles::Perspective, triggers::Trigger};
+use crate::{states::{Id, Team, Side}, stats::Stats, battles::Perspective, triggers::Trigger, actions::ActiveAction};
+
 
 pub struct Pet {
     pub species: Species,
@@ -9,6 +10,12 @@ pub struct Pet {
     pub stats: Stats,
     pub xp: u8,
     pub id: Id,
+}
+
+pub struct PetDetails<'a> {
+    pet: &'a mut Pet,
+    side: Side,
+    position: usize,
 }
 
 pub enum Species {
@@ -48,6 +55,12 @@ pub enum Species {
     Blowfish,
 }
 
+impl Pet {
+    pub fn apply_trigger(&mut self) {
+
+    }
+}
+
 pub fn trigger_action(mut perspective: Perspective, trigger: Trigger) {
 
     let pet = match perspective.get_current_pet() {
@@ -61,6 +74,14 @@ pub fn trigger_action(mut perspective: Perspective, trigger: Trigger) {
                 Species::Mosquito => {
                     // Snipe modification
                     let snipe_damage = 1;
+                    let attack = pet.stats.attack;
+                    perspective.action_resolver.active_actions.add(ActiveAction {
+                        priority: attack,
+                        delayed: false,
+                        action: Box::new(|| {
+                            return ;
+                        }),
+                    })
                 },
                 Species::Crab => todo!(),
                 Species::Dodo => todo!(),
@@ -69,7 +90,7 @@ pub fn trigger_action(mut perspective: Perspective, trigger: Trigger) {
                 _ => (),
             }
         },
-        Trigger::Hurt { source } => todo!(),
+        Trigger::Hurt { source, damage_type } => todo!(),
         Trigger::Faint => todo!(),
         Trigger::Sold => todo!(),
     }

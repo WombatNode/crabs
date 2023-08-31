@@ -1,5 +1,5 @@
 use crate::battles::get_pet_from_team;
-use crate::pets::Pet;
+use crate::pets::{Pet, PetDetails};
 use crate::food::Food;
 use crate::stats::Stats;
 
@@ -11,16 +11,16 @@ pub type Team = [Option<Pet>; 5];
 // Represents a side of a battle
 #[derive(Clone, Copy)]
 pub enum Side {
-    A = 0,
-    B = 1,
+    Player = 0,
+    Opposition = 1,
 }
 
 impl Side {
     // Get opposing side
     pub fn opposition(&self) -> Side {
         match self {
-            Side::A => Side::B,
-            Side::B => Side::A,
+            Side::Player => Side::Opposition,
+            Side::Opposition => Side::Player,
         }
     }
 }
@@ -52,25 +52,18 @@ pub struct PlayerState {
     next_id: Id,
 }
 
-impl PlayerState {
-    // // Get one side of the battle
-    // // Will return None if there is no relevant team, ie. trying to get the opposition while in the shop
-    // pub fn get_team_from_side<'a>(&'a mut self, side: Side) -> Option<&'a mut Team> {
-    //     match (side, &mut self.activity) {
-    //         (Side::A, Activity::Shop) => {
-    //             Some(&mut self.team)
-    //         },
-    //         (Side::A, Activity::Battle{team, opposition}) => {
-    //             Some(team)
-    //         },
-    //         (Side::B, Activity::Shop) => None,
-    //         (Side::B, Activity::Battle {team, opposition }) => {
-    //             Some(opposition)
-    //         },
-    //     }
-    // }    
-    
-    // Get noth sides of battle in tuple
+impl PlayerState {    
+    pub fn new() -> Self {
+        Self {
+            team: todo!(),
+            shop: todo!(),
+            shop_scaling: todo!(),
+            activity: todo!(),
+            next_id: todo!(),
+        }
+    }
+
+    // Get both sides of battle in tuple
     // Teams may be None
     // Returns a tuple where element 0 is the 'players' side, and 1 is the opposition. This doesn't account for in battle stuff, so the perspective functions should be used in those cases
     pub fn get_teams<'a>(&'a mut self) -> [Option<&'a mut Team>; 2] {
@@ -83,9 +76,7 @@ impl PlayerState {
             },
         }
     }
-}
 
-impl PlayerState {
     // Generate a unique id for a pet to be used for individual identification
     // As this project is currently single-threaded, there is no need for atomics
     fn gen_id(&mut self) -> Id {
@@ -94,11 +85,25 @@ impl PlayerState {
         id
     }
 
-    pub fn get_pet(&mut self, id: Id) -> Option<&mut Pet> {
+    pub fn get_pet<'a>(&mut self, id: Id) -> Option<PetDetails<'a>> {
         // Check our team first
         let [team, opposition] = self.get_teams();
-        get_pet_from_team(team, id)
-            .or(get_pet_from_team(opposition, id))
+        if let Some((pet, position)) = get_pet_from_team(team, id) {
+            Some(PetDetails {
+                pet,
+                side: Side::Player,
+                position,
+            })
+        }
+        else if let Some((pet, position)) = get_pet_from_team(opposition, id) {
+            Some(PetDetails {
+                pet,
+                side: Side::Opposition,
+                position,
+            })
+        } else {
+            None
+        }
     }
 }
 
