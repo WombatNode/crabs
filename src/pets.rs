@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use crate::{states::{Id, Team, Side, PlayerState}, stats::Stats, triggers::Trigger, actions::{ActiveAction, ActionResolver}};
+use crate::{states::{Id, Team, Side, PlayerState}, stats::Stats, triggers::Trigger, actions::{Action, ActionResolver}};
 
 
 pub struct Pet {
@@ -71,12 +71,13 @@ pub fn trigger_action(mut action_resolver: ActionResolver, pet_details: PetDetai
                     // Snipe modification
                     let snipe_damage = 1;
                     let attack = pet.stats.attack;
-                    action_resolver.active_actions.add(ActiveAction {
+                    action_resolver.active_actions.add(Action {
                         priority: attack,
                         delayed: false,
                         action: Box::new(|| {
                             return ;
                         }),
+                        source: pet.id,
                     })
                 },
                 Species::Crab => todo!(),
