@@ -20,13 +20,13 @@ pub fn cmp_random(a: &Pet, b: &Pet) -> Ordering {
 
 fn pick_n_random(n: usize, team: &mut Team) {
 
-    let some_elements: Vec<&mut Pet> = team.into_iter()
-        .filter_map(|x| x.as_ref())
-        .collect();
-    let n = min(some_elements.len(), n);
+    // let some_elements: Vec<&mut Pet> = team.into_iter()
+    //     .filter_map(|x| x.as_ref())
+    //     .collect();
+    // let n = min(some_elements.len(), n);
 
-    let random_elements = some_elements.into_iter()
-        .choose_multiple(&mut rand::thread_rng(), n);
+    // let random_elements = some_elements.into_iter()
+    //     .choose_multiple(&mut rand::thread_rng(), n);
 
 
     // We shouldn't choose empty slots

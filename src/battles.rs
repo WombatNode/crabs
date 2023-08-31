@@ -2,7 +2,7 @@ use std::cmp::{Ordering, min};
 
 use rand::seq::IteratorRandom;
 
-use crate::{states::{PlayerState, GameResult, Side, Id, Team}, pets::Pet, actions::{ActionQueue, ActiveAction, FinalAction, ActionResolver}, triggers::Trigger};
+use crate::{states::{PlayerState, GameResult, Side, Id, Team}, pets::Pet, actions::{ActionQueue, Action, ActionResolver}, triggers::Trigger};
 
 
 pub enum DamageType {

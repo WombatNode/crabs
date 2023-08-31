@@ -1,5 +1,3 @@
-use std::cell::Cell;
-
 use rand::{self, Rng};
 
 use crate::states::{PlayerState, Id};
@@ -96,6 +94,14 @@ impl ActionQueue{
     pub fn add(&mut self, action: Action) {
         self.buffered_actions.push(action);
     }
+
+    pub fn update_priorities(&mut self, source: Id, priority: u8) {
+        for action in &mut self.buffered_actions {
+            if action.source == source {
+                action.priority = priority;
+            }
+        }
+    }
 }
 
 // Action for  pets
@@ -114,12 +120,20 @@ pub struct ActionResolver<'a> {
 }
 
 impl <'a> ActionResolver<'a> {
-    pub fn new(state: &mut PlayerState) -> Self {
+    pub fn new(state: &'a mut PlayerState) -> Self {
         Self {
             active_actions: ActionQueue::new(), 
             faints: ActionQueue::new(), 
             post_faint: ActionQueue::new(), 
             state,
         }
+    }
+
+    pub fn update_priorities(&mut self, source: Id, priority: u8) {
+        self.active_actions.update_priorities(source, priority);
+
+        // IDK if there is any case where these things would occur. Why would a dead pets attack change?
+        self.faints.update_priorities(source, priority);
+        self.post_faint.update_priorities(source, priority);
     }
 }
