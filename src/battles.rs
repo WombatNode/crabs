@@ -1,32 +1,89 @@
 use std::cmp::{Ordering, min};
 
-use rand::seq::IteratorRandom;
+use rand::{seq::IteratorRandom, Rng};
 
-use crate::{states::{PlayerState, GameResult, Side, Id, Team}, pets::{Pet, PetDetails, trigger_action}, actions::{ActionQueue, Action, ActionResolver}, triggers::Trigger, utils::is_living};
+use crate::{states::{PlayerState, GameResult, Side, Id, Team}, pets::{Pet, PetDetails, trigger_action}, actions::{ActionQueue, Action, ActionResolver}, triggers::Trigger, utils::is_living, food::Food};
 
-
+#[derive(Clone, Copy)]
 pub enum DamageType {
     Snipe,
     Attack,
+    Instakill,
+}
+
+fn attack(source: PetDetails, target: PetDetails, action_resolver: &mut ActionResolver) {
+    let mut damage = source.pet.stats.attack;
+    let mut damage_type = DamageType::Attack;   
+
+    match source.pet.held_food {
+        Some(Food::MeatBone) => {
+            damage += 3;
+        },        
+        Some(Food::Steak) => {
+            damage += 20;
+            source.pet.held_food = None;
+        },
+        Some(Food::Cheese) => {
+            damage *= 2;
+            source.pet.held_food = None;
+        },
+        Some(Food::FortuneCookie) => {
+            if rand::thread_rng().gen_bool(0.5) {
+                damage *= 2;
+            }
+        },        
+        Some(Food::Salt) => {
+            if source.pet.species.tier() > target.pet.species.tier() {
+                damage *= 2;
+            }
+        },        
+        Some(Food::Peanut) => {
+            damage_type = DamageType::Instakill;
+        },
+        _ => {},
+    }
+
+    hurt(damage, source.pet.id, damage_type, target, action_resolver)
 }
 
 pub fn simulate_battle(mut state: PlayerState) -> GameResult {
     let mut resolver = ActionResolver::new();
 
     // Add start of battle abilities
-    for pet in state.get_all_pets() {
-        trigger_action(&mut resolver, pet, Trigger::StartOfBattle);
-    }
+    resolver.trigger_multiple(&mut state.get_all_pets(), Trigger::StartOfBattle);
 
     resolver.resolve(&mut state);
 
     // Loop through the pets attacking each other until one side has no pets left
     loop {
-        let player_pet = state.get_n_pets(1, Side::Player, is_living, |_| return).next();
-        let opposition_pet = state.get_n_pets(1, Side::Opposition, is_living, |_| return).next();
+        // TODO: Empty front space abilities
+
+        // Push pets to front before every attack I think
+        state.push_to_front();
+        // Add triggers for possible reordering 
+            for pet in state.get_all_pets() {
+        trigger_action(&mut resolver, &mut pet, Trigger::PossibleReordering);
+    }
+
+        let [player_pet, opposition_pet] = state.get_front_pets();
 
         match (player_pet, opposition_pet) {
-            
+            // No one has pets left
+            (None, None) => return GameResult::Draw,
+
+            // You have no pets left
+            (None, Some(_)) => return GameResult::Loss,
+
+            // They have no pets left
+            (Some(_), None) => return GameResult::Win,
+
+            // Both have pets left
+            (Some(player_pet), Some(opposition_pet)) => {
+                // Before attack abilities
+                trigger_action(&mut resolver, &mut player_pet, Trigger::BeforeAttack);                
+                trigger_action(&mut resolver, &mut player_pet, Trigger::BeforeAttack);
+
+            },
         }
     }
 
@@ -61,7 +118,7 @@ pub fn get_pet_from_team(team: Option<&mut Team>, id: Id) -> Option<(&mut Pet, u
 } 
 
 pub fn hurt(damage: u8, source: Id, damage_type: DamageType, 
-        target: PetDetails, action_resolver: &mut ActionResolver) 
+        mut target: PetDetails, action_resolver: &mut ActionResolver) 
 {
     // Deal with food mitigation
 
@@ -76,7 +133,7 @@ pub fn hurt(damage: u8, source: Id, damage_type: DamageType,
 
     // Apply hurt trigger to pet
     let trigger = Trigger::Hurt { source, damage_type };
-    trigger_action(action_resolver, target, trigger);
+    trigger_action(action_resolver, &mut target, trigger);
 
     // Check if the pet has been killed
     if new_hp == 0 {

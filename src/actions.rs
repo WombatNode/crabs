@@ -1,6 +1,6 @@
 use rand::{self, Rng};
 
-use crate::states::{PlayerState, Id};
+use crate::{states::{PlayerState, Id}, pets::{PetDetails, trigger_action}, triggers::Trigger};
 
 type ActionFn = dyn FnOnce(&mut ActionResolver, &mut PlayerState);
 
@@ -144,6 +144,12 @@ impl ActionResolver {
     pub fn resolve(&mut self, state: &mut PlayerState) {
         while let Some(action) = self.get_next() {
             (action.action)(self, state);
+        }
+    }
+
+    pub fn trigger_multiple<'a>(&mut self, pets: impl IntoIterator<Item=&'a mut PetDetails<'a>>, trigger: Trigger) {
+        for pet in pets {
+            trigger_action(self, pet, trigger.clone());
         }
     }
 }

@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use crate::{states::{Id, Team, Side, PlayerState}, stats::Stats, triggers::Trigger, actions::{Action, ActionResolver}, utils::{is_living, randomise}, battles::{hurt, DamageType}};
+use crate::{states::{Id, Team, Side, PlayerState}, stats::Stats, triggers::Trigger, actions::{Action, ActionResolver}, utils::{is_living, randomise}, battles::{hurt, DamageType}, food::Food};
 
 pub struct Pet {
     pub species: Species,
@@ -10,6 +10,7 @@ pub struct Pet {
     pub level: u8,
     pub xp: u8,
     pub id: Id,
+    pub held_food: Option<Food>,
 }
 
 pub struct PetDetails<'a> {
@@ -55,13 +56,20 @@ pub enum Species {
     Blowfish,
 }
 
+impl Species {
+    pub fn tier(&self) -> u8 {
+        // Todo actually add data
+        1
+    }
+}
+
 impl Pet {
     pub fn apply_trigger(&mut self) {
 
     }
 }
 
-pub fn trigger_action(mut action_resolver: &mut ActionResolver, pet_details: PetDetails, trigger: Trigger) {
+pub fn trigger_action(mut action_resolver: &mut ActionResolver, pet_details: &mut PetDetails, trigger: Trigger) {
 
     let pet =  pet_details.pet;
     let id = pet.id;
@@ -103,5 +111,8 @@ pub fn trigger_action(mut action_resolver: &mut ActionResolver, pet_details: Pet
         Trigger::Hurt { source, damage_type } => todo!(),
         Trigger::Faint => todo!(),
         Trigger::Sold => todo!(),
+        Trigger::PossibleReordering => todo!(),
+        Trigger::BeforeAttack => todo!(),
+        Trigger::AfterAttack => todo!(),
     }
 }

@@ -117,6 +117,14 @@ impl PlayerState {
             .take()
     }
 
+    pub fn get_front_pets(&mut self) -> [Option<PetDetails>; 2] {
+        let [player_team, opposition_team] = self.get_teams();
+        let player_front = into_pet_details(player_team, Side::Player).next();        
+        let opposition_front = into_pet_details(opposition_team, Side::Opposition).next();
+
+        [player_front, opposition_front]
+    }
+
     pub fn get_n_pets<'a, P, F>(&mut self, n: usize, side: Side, predicate: P, mut sort_fn: F) -> 
             impl Iterator<Item = PetDetails>  
     where
@@ -161,24 +169,37 @@ impl PlayerState {
         all
     }
 
-    pub fn get_front_pets(&mut self) {
-        let teams = self.get_teams();
-        let pets = teams.map(|team| {
-            let x = team.map(
-                |team| 
-                team.get_mut(0).map(
-                    |pet| PetDetails {
-                        pet: todo!(),
-                        side: todo!(),
-                        position: todo!(), 
-                    }
-                )
+    // pub fn get_front_pets(&mut self) {
+    //     let teams = self.get_teams();
+    //     let pets = teams.map(|team| {
+    //         let x = team.map(
+    //             |team| 
+    //             team.get_mut(0).map(
+    //                 |pet| PetDetails {
+    //                     pet: todo!(),
+    //                     side: todo!(),
+    //                     position: todo!(), 
+    //                 }
+    //             )
 
-            ).flatten();
-            x
-        });
+    //         ).flatten();
+    //         x
+    //     });
 
-        todo!()
+    //     todo!()
+    // }
+
+    pub fn push_to_front(&mut self) {
+        for team in self.get_teams() {
+            if let Some(team) = team {
+                team.sort_by(|a, b| {   
+                    match (a, b) {
+                    (Some(_), None) => std::cmp::Ordering::Less,
+                    (None, Some(_)) => std::cmp::Ordering::Greater,
+                    _ => std::cmp::Ordering::Equal,
+                }})
+            }
+        }
     }
 }
 
@@ -230,5 +251,6 @@ where
 pub enum GameResult {
     Win,
     Loss,
+    Draw,
 }
 
