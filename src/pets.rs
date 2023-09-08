@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use crate::{states::{Id, Team, Side, PlayerState}, stats::Stats, triggers::Trigger, actions::{Action, ActionResolver}, utils::is_living, battles::{hurt, DamageType}};
+use crate::{states::{Id, Team, Side, PlayerState}, stats::Stats, triggers::Trigger, actions::{Action, ActionResolver}, utils::{is_living, randomise}, battles::{hurt, DamageType}};
 
 pub struct Pet {
     pub species: Species,
@@ -85,7 +85,7 @@ pub fn trigger_action(mut action_resolver: &mut ActionResolver, pet_details: Pet
 
                             // let level = source.pet.level;
 
-                            for target in state.get_n_random(level.into(), opposition, is_living) {
+                            for target in state.get_n_pets(level.into(), opposition, is_living, randomise) {
                                 hurt(snipe_damage, id, DamageType::Snipe, target, resolver);
                             }
 

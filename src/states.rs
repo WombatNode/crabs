@@ -117,34 +117,85 @@ impl PlayerState {
             .take()
     }
 
-    pub fn get_n_random<'a, P>(&mut self, n: usize, side: Side, predicate: P) -> 
+    pub fn get_n_pets<'a, P, F>(&mut self, n: usize, side: Side, predicate: P, mut sort_fn: F) -> 
             impl Iterator<Item = PetDetails>  
     where
         P: FnMut(&PetDetails) -> bool,
         P: Copy,
+        F: FnMut(&mut Vec<PetDetails>),
     {
-        let mut options: Vec<PetDetails> = match self.get_team(side) {
-            Some(team) => {
-                team
-                .into_iter()
-                .enumerate()
-                .filter_map(
-                    |(position, pet)| pet.as_mut().map(|pet| PetDetails {
-                        pet,
-                        side,
-                        position,
-                    })
-                    .filter(predicate)
-                )
-                .collect()
-            },
-            None => Vec::new(),
-        };
+        let options = into_pet_details(self.get_team(side), side);
 
-        options.shuffle(&mut rand::thread_rng());
+        let mut options = options.into_iter()
+               .filter(predicate)
+               .collect();
+
+        sort_fn(&mut options);
+
+        // options.shuffle(&mut rand::thread_rng());
 
         return options.into_iter().take(n);
     } 
+
+    pub fn get_all_pets(&mut self) -> impl Iterator<Item = PetDetails>{
+        let teams = self.get_teams();
+        let all = teams.into_iter()
+            .zip([Side::Player, Side::Opposition].into_iter())
+            .filter_map(|(team, side)| {
+                Some(team?.into_iter()
+                    .enumerate()
+                    .filter_map(move |(position, pet)| {
+                        pet.as_mut().map(|pet| {
+                            PetDetails {
+                                pet: pet,
+                                side,
+                                position,
+                            }
+                        })
+                    })
+                )
+            })
+            .map(|team| team.into_iter())
+            .flatten();
+
+        all
+    }
+
+    pub fn get_front_pets(&mut self) {
+        let teams = self.get_teams();
+        let pets = teams.map(|team| {
+            let x = team.map(
+                |team| 
+                team.get_mut(0).map(
+                    |pet| PetDetails {
+                        pet: todo!(),
+                        side: todo!(),
+                        position: todo!(), 
+                    }
+                )
+
+            ).flatten();
+            x
+        });
+
+        todo!()
+    }
+}
+
+fn into_pet_details<'a>(teams: impl IntoIterator<Item = &'a mut Team>, side: Side) -> impl Iterator<Item = PetDetails<'a>> {
+    teams.into_iter()
+        .map(move |team| 
+        team
+        .into_iter()
+        .enumerate()
+        .filter_map(
+            move |(position, pet)| pet.as_mut().map(|pet| PetDetails {
+                pet,
+                side,
+                position,
+            })
+        )       
+    ).flatten()
 }
 
 // Represents what the player is currently doing,

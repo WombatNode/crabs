@@ -2,7 +2,7 @@ use std::cmp::{Ordering, min};
 
 use rand::seq::IteratorRandom;
 
-use crate::{states::{PlayerState, GameResult, Side, Id, Team}, pets::{Pet, PetDetails, trigger_action}, actions::{ActionQueue, Action, ActionResolver}, triggers::Trigger};
+use crate::{states::{PlayerState, GameResult, Side, Id, Team}, pets::{Pet, PetDetails, trigger_action}, actions::{ActionQueue, Action, ActionResolver}, triggers::Trigger, utils::is_living};
 
 
 pub enum DamageType {
@@ -11,6 +11,24 @@ pub enum DamageType {
 }
 
 pub fn simulate_battle(mut state: PlayerState) -> GameResult {
+    let mut resolver = ActionResolver::new();
+
+    // Add start of battle abilities
+    for pet in state.get_all_pets() {
+        trigger_action(&mut resolver, pet, Trigger::StartOfBattle);
+    }
+
+    resolver.resolve(&mut state);
+
+    // Loop through the pets attacking each other until one side has no pets left
+    loop {
+        let player_pet = state.get_n_pets(1, Side::Player, is_living, |_| return).next();
+        let opposition_pet = state.get_n_pets(1, Side::Opposition, is_living, |_| return).next();
+
+        match (player_pet, opposition_pet) {
+            
+        }
+    }
 
     GameResult::Loss
 }

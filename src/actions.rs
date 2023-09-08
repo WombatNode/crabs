@@ -134,4 +134,16 @@ impl ActionResolver {
         self.faints.update_priorities(source, priority);
         self.post_faint.update_priorities(source, priority);
     }
+
+    pub fn get_next(&mut self) -> Option<Action> {
+        self.active_actions.get_next()
+            .or(self.faints.get_next())
+            .or(self.post_faint.get_next())
+    }
+
+    pub fn resolve(&mut self, state: &mut PlayerState) {
+        while let Some(action) = self.get_next() {
+            (action.action)(self, state);
+        }
+    }
 }

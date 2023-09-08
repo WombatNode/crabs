@@ -21,3 +21,7 @@ pub fn cmp_random(a: &Pet, b: &Pet) -> Ordering {
 pub fn is_living(pet: &PetDetails) -> bool {
     return pet.pet.stats.hp > 0;
 }
+
+pub fn randomise(pets: &mut Vec<PetDetails>) {
+    pets.shuffle(&mut rand::thread_rng())
+}
